@@ -17,6 +17,37 @@
 		<script>
 			$(document).ready(function(){
 
+				function carregaPostagens() {
+					const url = 'http://localhost:8080/api';
+
+					const xhr = new XMLHttpRequest();
+
+					xhr.onload = () => {
+						const status = xhr.status;
+						if (status == 200) {
+							const dados = JSON.parse(xhr.responseText);
+							console.log(dados);
+
+							dados.forEach(el => {
+								$('#container_timeline').append(
+									'<div class="publicacao">'+
+									'<span class="titulo">'+
+									el.titulo+
+									'</span>'+
+									'<img src="http://localhost:8080/uploads/'+
+									el.url_imagem+
+									'"/>'+
+									'</div>'
+								);
+							});
+						}
+					}
+					xhr.open('GET', url);
+					xhr.send();
+				}
+
+				carregaPostagens();
+
 				$('#btn_incluir').click(function(){
 					$('#container_timeline').hide();
 					$('#container_form').show();
@@ -27,6 +58,33 @@
 					$('#container_form').hide();
 					return false;
 				});
+
+				$('#btn-publicar').click(event => {
+					// Criar um formData
+					const arquivo = $('#arquivo').prop('files')[0];
+					const titulo = $('#titulo').val();
+					const formData = new FormData();
+
+					formData.append('arquivo', arquivo);
+					formData.append('titulo', titulo);
+					console.log(arquivo, titulo);
+
+					const url = 'http://localhost:8080/api';
+
+					const xhr = new XMLHttpRequest();
+
+					xhr.onreadystatechange = () => {
+						if (xhr.readyState == 4) {
+							// ....
+							const resposta = xhr.responseText;
+							console.log('finish');
+							$('#mensagem').html(resposta);
+						}
+					}
+
+					xhr.open('POST', url)
+					xhr.send(formData);
+				})
 
 			});
 		</script>
@@ -58,20 +116,21 @@
 
 			<div class="panel-heading"><h4>Publicar uma foto</h4></div>
 			
-			<div class="panel-body">
-				<div class="form-group">
-					<input type="file" name="arquivo" id="arquivo" class="form-control">
-				</div>
+				<div class="panel-body">
+					<div class="form-group">
+						<input type="file" name="arquivo" id="arquivo" class="form-control">
+					</div>
 
-				<div class="form-group">
-					<input type="text" name="titulo" id="titulo" class="form-control" placeholder="Titulo" autocomplete="off">
-				</div>
+					<div class="form-group">
+						<input type="text" name="titulo" id="titulo" class="form-control" placeholder="Titulo" autocomplete="off">
+					</div>
 
-				<div class="form-group">
-					<button class="btn btn-success" id="btn-publicar">Publicar</button>
-					<button class="btn btn-danger" id="btn-cancelar-publicacao">Cancelar</button>
+					<div class="form-group">
+						<button class="btn btn-success" id="btn-publicar">Publicar</button>
+						<button class="btn btn-danger" id="btn-cancelar-publicacao">Cancelar</button>
+					</div>
+					<div id="mensagem"></div>
 				</div>
-				<div id="mensagem"></div>
 			</div>
 		</div>
 	</body>
