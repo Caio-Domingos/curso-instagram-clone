@@ -115,15 +115,22 @@ app.get('/uploads/:imagem', (req, res) => {
 app.put('/api/:id', async (req, res) => {
   const connection = await mongodb;
 
-  const id = req.param('id');
+  const id = req.params.id;
   const dados = req.body;
+
+  console.log(id);
   connection
     .db()
     .collection('postagens')
     .findOneAndUpdate(
-      objectID(id),
+      { _id: objectID(id) },
       {
-        $set: { titulo: dados.titulo, imagem: dados.imagem }
+        $push: {
+          comentarios: {
+            id_comentario: new objectID(),
+            comentario: dados.comentario
+          }
+        }
       },
       (err, result) => {
         if (err) {
@@ -138,13 +145,16 @@ app.put('/api/:id', async (req, res) => {
 
 app.delete('/api/:id', async (req, res) => {
   const connection = await mongodb;
-
-  const id = req.param('id');
+  const id = req.params.id;
 
   connection
     .db()
     .collection('postagens')
-    .findOneAndDelete(objectID(id), (err, result) => {
+    .updateMany({}, {
+      $pull: {
+        comentarios: {id_comentario: objectID(id)}
+      }
+    }, (err, result) => {
       if (err) {
         res.status(422).json(err);
         return;

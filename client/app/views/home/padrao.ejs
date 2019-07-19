@@ -29,17 +29,71 @@
 							console.log(dados);
 
 							dados.forEach(el => {
+								
+
 								$('#container_timeline').append(
 									'<div class="publicacao">'+
-									'<span class="titulo">'+
-									el.titulo+
-									'</span>'+
-									'<img src="http://localhost:8080/uploads/'+
-									el.url_imagem+
-									'"/>'+
+										'<span class="titulo">'+
+											el.titulo+
+										'</span>'+
+										'<img src="http://localhost:8080/uploads/'+
+										el.url_imagem+
+										'"/>'+
+										'<div class="comentarios" id="comentarios_'+el._id+'">'+
+
+										'</div>'+
+										'<div class="comentar">'+
+											'<input type="text" class="form-control input-comentario" id="postagem_'+el._id+'" placeholder="Adicione um comentário...">'+
+											'<button class="btn btn-default btn-postagem" value="'+el._id+'" type="button">Comentar</button>'+
+										'</div>'+
 									'</div>'
 								);
+
+								if (el.comentarios != undefined) {
+									const comentarios = el.comentarios;
+
+									comentarios.forEach(comms => {
+										$('#comentarios_'+el._id).append(
+											'<div class="txt-comentario">'+
+												'<button type="button" class="btn btn-default btn_remover_postagem" value="'+comms.id_comentario+'">X</button>'+
+												comms.comentario+
+											'</div>'
+										);
+									});
+								}
 							});
+
+							$('.btn-postagem').click(function() {
+								const id = this.value;
+								const id_input_comentario = 'postagem_' + id;
+								const comentario = $('#'+id_input_comentario).val();
+								
+								const xhr = new XMLHttpRequest();
+								xhr.open('PUT', 'http://localhost:8080/api/'+id);
+								xhr.setRequestHeader('Content-type', 'application/json');
+								xhr.onload = () => {
+									console.log(JSON.parse(xhr.responseText));
+									if (xhr.status === 200) {
+										window.location.href = '/home';
+									}
+								};
+								xhr.send(JSON.stringify({comentario: comentario}));
+							});
+
+							$('.btn_remover_postagem').click(function() {
+								const id = this.value;
+								// console.log(id);
+
+								const xhr = new XMLHttpRequest();
+								xhr.open('DELETE', 'http://localhost:8080/api/'+id);
+								xhr.onload = () => {
+									if (xhr.status === 200) {
+									console.log(xhr.responseText);
+										window.location.href = '/home';
+									}
+								};
+								xhr.send();
+							})
 						}
 					}
 					xhr.open('GET', url);
